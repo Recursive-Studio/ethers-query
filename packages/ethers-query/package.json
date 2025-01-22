@@ -1,12 +1,44 @@
 {
     "name": "ethers-query",
     "version": "0.0.1",
-    "description": "",
+    "description": "React Query hooks for ethers",
     "type": "module",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/Recursive-Studio/ethers-query.git"
     },
-    "keywords": [],
-    "author": "",
-    "license": "ISC"
+    "files": [
+      "dist",
+      "package.json"
+    ],
+    "exports": {
+      ".": {
+        "import": "./dist/index.js",
+        "require": "./dist/index.cjs",
+        "types": "./dist/index.d.ts"
+      }
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "build": "tsup"
+    },
+    "keywords": [
+        "ethers",
+        "react-query",
+        "@tanstack/react-query",
+        "typescript",
+        "react"
+    ],
+    "author": "Lucemans",
+    "license": "GPL-3.0-only",
+    "devDependencies": {
+        "typescript": "^5.7.3",
+        "tsup": "*"
+    },
+    "peerDependencies": {
+        "@tanstack/react-query": "*",
+        "react": "*",
+        "react-dom": "*",
+        "ethers": "6.x"
+    }
 }

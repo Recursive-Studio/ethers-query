@@ -17,6 +17,7 @@ interface EthersQueryContextValue {
     provider: Provider | null;
     isConnecting: boolean;
     error: Error | null;
+    disconnect: () => void;
 }
 
 const EthersQueryContext = createContext<EthersQueryContextValue | undefined>(undefined);
@@ -37,7 +38,7 @@ export interface EthersQueryProviderProps extends PropsWithChildren {
 
 export const EthersQueryProvider: FC<EthersQueryProviderProps> = ({ children, config }) => {
     const [provider, setProvider] = useState<Provider | null>(null);
-    const [isConnecting, setIsConnecting] = useState(true);
+    const [isConnecting, setIsConnecting] = useState(false);
     const [error, setError] = useState<Error | null>(null);
     const providerRef = useRef<Provider | null>(null);
 
@@ -54,6 +55,31 @@ export const EthersQueryProvider: FC<EthersQueryProviderProps> = ({ children, co
             hasError: !!error
         });
     }, [provider, isConnecting, error]);
+
+    // Disconnect function
+    const disconnect = async () => {
+        console.log('[EthersQueryProvider] Disconnecting...');
+        try {
+            if (window.ethereum) {
+                // First clear the provider to prevent any queries from using it
+                setProvider(null);
+                
+                // Clear any cached permissions/accounts
+                try {
+                    await window.ethereum.request({
+                        method: 'eth_accounts'
+                    });
+                } catch (e) {
+                    console.log('[EthersQueryProvider] Error clearing accounts:', e);
+                }
+
+                // Finally invalidate queries after provider is cleared
+                queryClient.invalidateQueries({ queryKey: ['account'] });
+            }
+        } catch (e) {
+            console.error('[EthersQueryProvider] Error during disconnect:', e);
+        }
+    };
 
     useEffect(() => {
         let mounted = true;
@@ -112,10 +138,31 @@ export const EthersQueryProvider: FC<EthersQueryProviderProps> = ({ children, co
                         console.log('[EthersQueryProvider] Chain changed');
                         // Only update provider if we're already connected
                         if (provider && mounted) {
-                            const browserProvider = new BrowserProvider(window.ethereum);
-                            // Wait for provider to be ready before setting it
-                            await browserProvider.getSigner();
-                            setProvider(browserProvider);
+                            try {
+                                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                                if (accounts && accounts.length > 0) {
+                                    const browserProvider = new BrowserProvider(window.ethereum);
+                                    // Wait for provider to be ready before setting it
+                                    await browserProvider.getSigner();
+                                    setProvider(browserProvider);
+                                    queryClient.invalidateQueries({ queryKey: ['account'] });
+                                } else {
+                                    setProvider(null);
+                                    queryClient.invalidateQueries({ queryKey: ['account'] });
+                                }
+                            } catch (e) {
+                                console.error('[EthersQueryProvider] Error handling chain change:', e);
+                                setProvider(null);
+                                queryClient.invalidateQueries({ queryKey: ['account'] });
+                            }
+                        }
+                    });
+
+                    // Listen for disconnect event
+                    window.ethereum.on('disconnect', () => {
+                        console.log('[EthersQueryProvider] Received disconnect event');
+                        if (mounted) {
+                            setProvider(null);
                             queryClient.invalidateQueries({ queryKey: ['account'] });
                         }
                     });
@@ -142,6 +189,7 @@ export const EthersQueryProvider: FC<EthersQueryProviderProps> = ({ children, co
             if (window.ethereum) {
                 window.ethereum.removeListener('accountsChanged', () => {});
                 window.ethereum.removeListener('chainChanged', () => {});
+                window.ethereum.removeListener('disconnect', () => {});
             }
             if (providerRef.current instanceof BrowserProvider) {
                 providerRef.current.removeAllListeners();
@@ -153,6 +201,7 @@ export const EthersQueryProvider: FC<EthersQueryProviderProps> = ({ children, co
         provider,
         isConnecting,
         error,
+        disconnect,
     };
 
     console.log('[EthersQueryProvider] Rendering with context:', {

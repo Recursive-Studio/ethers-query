@@ -8,6 +8,13 @@ export interface AccountData {
     address: string | null;
 }
 
+export interface UseAccountResult {
+    data: AccountData;
+    isLoading: boolean;
+    error: Error | null;
+    disconnect: () => void;
+}
+
 // Create a client if one doesn't exist
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -18,8 +25,8 @@ const queryClient = new QueryClient({
     },
 });
 
-export function useAccount() {
-    const { provider, isConnecting, error } = useEthersQuery();
+export function useAccount(): UseAccountResult {
+    const { provider, isConnecting, error, disconnect } = useEthersQuery();
 
     console.log('[useAccount] Hook called with:', {
         hasProvider: !!provider,
@@ -27,7 +34,7 @@ export function useAccount() {
         hasError: !!error
     });
 
-    return useQuery<AccountData>({
+    const query = useQuery<AccountData>({
         queryKey: ['account', !!provider],
         queryFn: async () => {
             const currentProvider = provider;
@@ -42,11 +49,30 @@ export function useAccount() {
             }
 
             try {
+                // Check if provider is still valid before proceeding
+                const accounts = await window.ethereum?.request({ method: 'eth_accounts' });
+                if (!accounts || accounts.length === 0) {
+                    console.log('[useAccount] No accounts available');
+                    return {
+                        status: 'disconnected' as const,
+                        address: null,
+                    };
+                }
+
                 console.log('[useAccount] Getting signer...');
                 const signer = await currentProvider.getSigner();
                 console.log('[useAccount] Got signer, getting address...');
                 const address = await signer.getAddress();
                 console.log('[useAccount] Got address:', address);
+
+                // Verify the address matches the current account
+                if (address.toLowerCase() !== accounts[0].toLowerCase()) {
+                    console.log('[useAccount] Address mismatch, returning disconnected state');
+                    return {
+                        status: 'disconnected' as const,
+                        address: null,
+                    };
+                }
 
                 return {
                     status: 'connected' as const,
@@ -60,7 +86,7 @@ export function useAccount() {
                 };
             }
         },
-        enabled: !isConnecting, // Don't run query while provider is initializing
+        enabled: !isConnecting && !!provider, // Only run query when provider is available and not connecting
         staleTime: Infinity, // Cache the result until explicitly invalidated
         initialData: () => {
             // If we're connecting, show connecting state
@@ -88,4 +114,9 @@ export function useAccount() {
             };
         },
     });
+
+    return {
+        ...query,
+        disconnect,
+    };
 } 

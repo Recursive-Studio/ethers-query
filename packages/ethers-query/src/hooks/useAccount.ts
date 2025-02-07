@@ -1,6 +1,7 @@
 import type { Provider } from 'ethers'
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import { useEthersQuery } from '../context.js'
+import { useSyncExternalStoreWithTracked } from './useSyncExternalStoreWithTracked.js'
 
 export interface AccountData {
     address: string | null
@@ -14,22 +15,11 @@ export interface AccountData {
 
 export function useAccount(): AccountData {
     const client = useEthersQuery()
-    const [data, setData] = useState<AccountData>(() => {
-        const state = client.getState()
-        return {
-            address: state.data?.account ?? null,
-            chainId: state.data?.chainId ?? null,
-            isConnected: state.status === 'connected',
-            isConnecting: state.status === 'connecting' || state.status === 'reconnecting',
-            isDisconnected: state.status === 'disconnected',
-            isInitialized: state.isInitialized,
-            provider: state.data?.provider ?? null
-        }
-    })
     
-    useEffect(() => {
-        return client.subscribe((state) => {
-            setData({
+    const getSnapshot = useMemo(() => {
+        return () => {
+            const state = client.getState()
+            return {
                 address: state.data?.account ?? null,
                 chainId: state.data?.chainId ?? null,
                 isConnected: state.status === 'connected',
@@ -37,22 +27,12 @@ export function useAccount(): AccountData {
                 isDisconnected: state.status === 'disconnected',
                 isInitialized: state.isInitialized,
                 provider: state.data?.provider ?? null
-            })
-        })
-    }, [client])
-    
-    // During SSR or before initialization, return a loading state
-    if (!data.isInitialized) {
-        return {
-            address: null,
-            chainId: null,
-            isConnected: false,
-            isConnecting: true,
-            isDisconnected: false,
-            isInitialized: false,
-            provider: null
+            }
         }
-    }
-    
-    return data
+    }, [client])
+
+    return useSyncExternalStoreWithTracked(
+        (onChange) => client.subscribe(onChange),
+        getSnapshot
+    )
 } 

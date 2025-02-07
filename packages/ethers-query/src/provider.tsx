@@ -86,6 +86,7 @@ export const EthersQueryProvider: FC<EthersQueryProviderProps> = ({ children, co
 
         const initProvider = async () => {
             try {
+                setIsConnecting(true);
                 console.log('[EthersQueryProvider] Initializing provider...');
                 
                 if (typeof window !== 'undefined' && window.ethereum) {
@@ -114,7 +115,7 @@ export const EthersQueryProvider: FC<EthersQueryProviderProps> = ({ children, co
                     }
 
                     // Listen to window.ethereum events
-                    window.ethereum.on('accountsChanged', async (accounts: string[]) => {
+                    const handleAccountsChanged = async (accounts: string[]) => {
                         console.log('[EthersQueryProvider] Account changed:', accounts);
                         if (accounts.length === 0) {
                             console.log('[EthersQueryProvider] No accounts, disconnecting');
@@ -125,14 +126,22 @@ export const EthersQueryProvider: FC<EthersQueryProviderProps> = ({ children, co
                         } else {
                             console.log('[EthersQueryProvider] Account connected:', accounts[0]);
                             if (mounted) {
-                                const browserProvider = new BrowserProvider(window.ethereum);
-                                // Wait for provider to be ready before setting it
-                                await browserProvider.getSigner();
-                                setProvider(browserProvider);
-                                queryClient.invalidateQueries({ queryKey: ['account'] });
+                                try {
+                                    const browserProvider = new BrowserProvider(window.ethereum);
+                                    // Wait for provider to be ready before setting it
+                                    await browserProvider.getSigner();
+                                    setProvider(browserProvider);
+                                    queryClient.invalidateQueries({ queryKey: ['account'] });
+                                } catch (e) {
+                                    console.error('[EthersQueryProvider] Error setting up provider after account change:', e);
+                                    setProvider(null);
+                                }
                             }
                         }
-                    });
+                    };
+
+                    // Remove the automatic eth_requestAccounts call
+                    window.ethereum.on('accountsChanged', handleAccountsChanged);
 
                     window.ethereum.on('chainChanged', async () => {
                         console.log('[EthersQueryProvider] Chain changed');
@@ -158,12 +167,21 @@ export const EthersQueryProvider: FC<EthersQueryProviderProps> = ({ children, co
                         }
                     });
 
-                    // Listen for disconnect event
-                    window.ethereum.on('disconnect', () => {
-                        console.log('[EthersQueryProvider] Received disconnect event');
+                    // Listen for connect event from AppKit
+                    window.ethereum.on('connect', async () => {
+                        console.log('[EthersQueryProvider] Received connect event');
                         if (mounted) {
-                            setProvider(null);
-                            queryClient.invalidateQueries({ queryKey: ['account'] });
+                            try {
+                                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                                if (accounts && accounts.length > 0) {
+                                    const browserProvider = new BrowserProvider(window.ethereum);
+                                    await browserProvider.getSigner();
+                                    setProvider(browserProvider);
+                                    queryClient.invalidateQueries({ queryKey: ['account'] });
+                                }
+                            } catch (e) {
+                                console.error('[EthersQueryProvider] Error handling connect event:', e);
+                            }
                         }
                     });
 
@@ -189,6 +207,7 @@ export const EthersQueryProvider: FC<EthersQueryProviderProps> = ({ children, co
             if (window.ethereum) {
                 window.ethereum.removeListener('accountsChanged', () => {});
                 window.ethereum.removeListener('chainChanged', () => {});
+                window.ethereum.removeListener('connect', () => {});
                 window.ethereum.removeListener('disconnect', () => {});
             }
             if (providerRef.current instanceof BrowserProvider) {

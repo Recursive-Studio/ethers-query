@@ -11,10 +11,12 @@ export function AccountStatus() {
         isConnected: account.isConnected,
         isConnecting: account.isConnecting,
         isDisconnected: account.isDisconnected,
+        isInitialized: account.isInitialized,
         hasProvider: !!account.provider
     });
 
-    if (account.isConnecting) {
+    // Always show loading during SSR or before initialization
+    if (!account.isInitialized || account.isConnecting) {
         return (
             <div>
                 <h2>Account Status</h2>

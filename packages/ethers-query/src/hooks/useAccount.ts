@@ -8,6 +8,7 @@ export interface AccountData {
     isConnected: boolean
     isConnecting: boolean
     isDisconnected: boolean
+    isInitialized: boolean
     provider: Provider | null
 }
 
@@ -21,6 +22,7 @@ export function useAccount(): AccountData {
             isConnected: state.status === 'connected',
             isConnecting: state.status === 'connecting' || state.status === 'reconnecting',
             isDisconnected: state.status === 'disconnected',
+            isInitialized: state.isInitialized,
             provider: state.data?.provider ?? null
         }
     })
@@ -33,10 +35,24 @@ export function useAccount(): AccountData {
                 isConnected: state.status === 'connected',
                 isConnecting: state.status === 'connecting' || state.status === 'reconnecting',
                 isDisconnected: state.status === 'disconnected',
+                isInitialized: state.isInitialized,
                 provider: state.data?.provider ?? null
             })
         })
     }, [client])
+    
+    // During SSR or before initialization, return a loading state
+    if (!data.isInitialized) {
+        return {
+            address: null,
+            chainId: null,
+            isConnected: false,
+            isConnecting: true,
+            isDisconnected: false,
+            isInitialized: false,
+            provider: null
+        }
+    }
     
     return data
 } 

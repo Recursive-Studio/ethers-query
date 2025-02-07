@@ -1,3 +1,6 @@
-export { useAccount, type AccountData, type AccountStatus } from './hooks/useAccount.js';
-export { EthersQueryProvider, type EthersQueryConfig } from './provider.js';
-export const hello = '';
+export { Client } from './client.js'
+export { type Connector, type ConnectorData } from './connectors/base.js'
+export { InjectedConnector } from './connectors/injected.js'
+export { EthersQueryProvider, useEthersQuery, type EthersQueryProviderProps } from './context.js'
+export { useAccount, type AccountData } from './hooks/useAccount.js'
+

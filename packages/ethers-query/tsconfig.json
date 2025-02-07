@@ -1,7 +1,16 @@
 {
     "compilerOptions": {
-        "moduleResolution": "nodenext",
+        "moduleResolution": "NodeNext",
         "module": "NodeNext",
-        "jsx": "react-jsx"
-    }
+        "target": "ES2021",
+        "jsx": "react-jsx",
+        "strict": true,
+        "declaration": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "sourceMap": true,
+        "verbatimModuleSyntax": true,
+        "forceConsistentCasingInFileNames": true
+    },
+    "include": ["src"]
 }

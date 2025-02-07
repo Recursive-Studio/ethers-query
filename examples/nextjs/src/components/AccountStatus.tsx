@@ -3,11 +3,18 @@
 import { useAccount } from 'ethers-query';
 
 export function AccountStatus() {
-    const { data: account, isLoading, error } = useAccount();
+    const account = useAccount();
 
-    console.log({account, isLoading, error});
+    console.log('AccountStatus:', {
+        address: account.address,
+        chainId: account.chainId,
+        isConnected: account.isConnected,
+        isConnecting: account.isConnecting,
+        isDisconnected: account.isDisconnected,
+        hasProvider: !!account.provider
+    });
 
-    if (isLoading) {
+    if (account.isConnecting) {
         return (
             <div>
                 <h2>Account Status</h2>
@@ -16,11 +23,11 @@ export function AccountStatus() {
         );
     }
 
-    if (error) {
+    if (account.isDisconnected) {
         return (
             <div>
                 <h2>Account Status</h2>
-                <p>Error: {error.message}</p>
+                <p>Disconnected</p>
             </div>
         );
     }
@@ -28,9 +35,12 @@ export function AccountStatus() {
     return (
         <div>
             <h2>Account Status</h2>
-            <p>Status: {account.status}</p>
+            <p>Connected</p>
             {account.address && (
                 <p>Address: {account.address}</p>
+            )}
+            {account.chainId && (
+                <p>Chain ID: {account.chainId}</p>
             )}
         </div>
     );

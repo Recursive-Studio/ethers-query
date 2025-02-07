@@ -92,29 +92,6 @@ export const EthersQueryProvider: FC<EthersQueryProviderProps> = ({ children, co
                 if (typeof window !== 'undefined' && window.ethereum) {
                     console.log('[EthersQueryProvider] Found window.ethereum');
                     
-                    // First check if we're already connected using eth_accounts (doesn't trigger connection)
-                    try {
-                        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                        console.log('[EthersQueryProvider] Checked accounts:', accounts);
-                        
-                        if (accounts && accounts.length > 0) {
-                            console.log('[EthersQueryProvider] Found existing connection:', accounts[0]);
-                            if (mounted) {
-                                const browserProvider = new BrowserProvider(window.ethereum);
-                                // Wait for provider to be ready before setting it
-                                await browserProvider.getSigner();
-                                setProvider(browserProvider);
-                            }
-                        } else {
-                            console.log('[EthersQueryProvider] No existing connection found');
-                            if (mounted) setProvider(null);
-                        }
-                    } catch (e) {
-                        console.error('[EthersQueryProvider] Error checking accounts:', e);
-                        if (mounted) setProvider(null);
-                    }
-
-                    // Listen to window.ethereum events
                     const handleAccountsChanged = async (accounts: string[]) => {
                         console.log('[EthersQueryProvider] Account changed:', accounts);
                         if (accounts.length === 0) {
@@ -130,6 +107,32 @@ export const EthersQueryProvider: FC<EthersQueryProviderProps> = ({ children, co
                                     const browserProvider = new BrowserProvider(window.ethereum);
                                     // Wait for provider to be ready before setting it
                                     await browserProvider.getSigner();
+                                    
+                                    // Set up provider event listeners
+                                    browserProvider.provider.on('accountsChanged', handleAccountsChanged);
+                                    browserProvider.provider.on('chainChanged', async () => {
+                                        console.log('[EthersQueryProvider] Chain changed');
+                                        if (mounted) {
+                                            try {
+                                                const browserProvider = new BrowserProvider(window.ethereum);
+                                                await browserProvider.getSigner();
+                                                setProvider(browserProvider);
+                                                queryClient.invalidateQueries({ queryKey: ['account'] });
+                                            } catch (e) {
+                                                console.error('[EthersQueryProvider] Error handling chain change:', e);
+                                                setProvider(null);
+                                                queryClient.invalidateQueries({ queryKey: ['account'] });
+                                            }
+                                        }
+                                    });
+                                    browserProvider.provider.on('disconnect', () => {
+                                        console.log('[EthersQueryProvider] Provider disconnected');
+                                        if (mounted) {
+                                            setProvider(null);
+                                            queryClient.invalidateQueries({ queryKey: ['account'] });
+                                        }
+                                    });
+                                    
                                     setProvider(browserProvider);
                                     queryClient.invalidateQueries({ queryKey: ['account'] });
                                 } catch (e) {
@@ -140,51 +143,48 @@ export const EthersQueryProvider: FC<EthersQueryProviderProps> = ({ children, co
                         }
                     };
 
-                    // Remove the automatic eth_requestAccounts call
-                    window.ethereum.on('accountsChanged', handleAccountsChanged);
-
-                    window.ethereum.on('chainChanged', async () => {
-                        console.log('[EthersQueryProvider] Chain changed');
-                        // Only update provider if we're already connected
-                        if (provider && mounted) {
-                            try {
-                                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                                if (accounts && accounts.length > 0) {
-                                    const browserProvider = new BrowserProvider(window.ethereum);
-                                    // Wait for provider to be ready before setting it
-                                    await browserProvider.getSigner();
-                                    setProvider(browserProvider);
-                                    queryClient.invalidateQueries({ queryKey: ['account'] });
-                                } else {
-                                    setProvider(null);
-                                    queryClient.invalidateQueries({ queryKey: ['account'] });
-                                }
-                            } catch (e) {
-                                console.error('[EthersQueryProvider] Error handling chain change:', e);
-                                setProvider(null);
-                                queryClient.invalidateQueries({ queryKey: ['account'] });
+                    // Initial setup of provider if we have an account
+                    const setupInitialProvider = async () => {
+                        try {
+                            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                            if (accounts && accounts.length > 0) {
+                                const browserProvider = new BrowserProvider(window.ethereum);
+                                await browserProvider.getSigner();
+                                
+                                // Set up provider event listeners
+                                browserProvider.provider.on('accountsChanged', handleAccountsChanged);
+                                browserProvider.provider.on('chainChanged', async () => {
+                                    console.log('[EthersQueryProvider] Chain changed');
+                                    if (mounted) {
+                                        try {
+                                            const browserProvider = new BrowserProvider(window.ethereum);
+                                            await browserProvider.getSigner();
+                                            setProvider(browserProvider);
+                                            queryClient.invalidateQueries({ queryKey: ['account'] });
+                                        } catch (e) {
+                                            console.error('[EthersQueryProvider] Error handling chain change:', e);
+                                            setProvider(null);
+                                            queryClient.invalidateQueries({ queryKey: ['account'] });
+                                        }
+                                    }
+                                });
+                                browserProvider.provider.on('disconnect', () => {
+                                    console.log('[EthersQueryProvider] Provider disconnected');
+                                    if (mounted) {
+                                        setProvider(null);
+                                        queryClient.invalidateQueries({ queryKey: ['account'] });
+                                    }
+                                });
+                                
+                                setProvider(browserProvider);
                             }
+                        } catch (e) {
+                            console.error('[EthersQueryProvider] Error setting up initial provider:', e);
+                            setProvider(null);
                         }
-                    });
+                    };
 
-                    // Listen for connect event from AppKit
-                    window.ethereum.on('connect', async () => {
-                        console.log('[EthersQueryProvider] Received connect event');
-                        if (mounted) {
-                            try {
-                                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                                if (accounts && accounts.length > 0) {
-                                    const browserProvider = new BrowserProvider(window.ethereum);
-                                    await browserProvider.getSigner();
-                                    setProvider(browserProvider);
-                                    queryClient.invalidateQueries({ queryKey: ['account'] });
-                                }
-                            } catch (e) {
-                                console.error('[EthersQueryProvider] Error handling connect event:', e);
-                            }
-                        }
-                    });
-
+                    await setupInitialProvider();
                 } else {
                     // Fallback to RPC provider
                     const rpcUrl = config?.rpcUrl || `https://eth-mainnet.g.alchemy.com/v2/${config?.alchemyApiKey || 'demo'}`;
@@ -204,12 +204,6 @@ export const EthersQueryProvider: FC<EthersQueryProviderProps> = ({ children, co
         // Cleanup function
         return () => {
             mounted = false;
-            if (window.ethereum) {
-                window.ethereum.removeListener('accountsChanged', () => {});
-                window.ethereum.removeListener('chainChanged', () => {});
-                window.ethereum.removeListener('connect', () => {});
-                window.ethereum.removeListener('disconnect', () => {});
-            }
             if (providerRef.current instanceof BrowserProvider) {
                 providerRef.current.removeAllListeners();
             }

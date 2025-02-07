@@ -1,31 +1,19 @@
 'use client';
 
-import { ethersAdapter, metadata, projectId } from '@/config/appkit';
-import { mainnet } from '@reown/appkit/networks';
-import { createAppKit } from '@reown/appkit/react';
-import { EthersQueryProvider } from 'ethers-query';
+import { Client, EthersQueryProvider, InjectedConnector } from 'ethers-query';
 import { PropsWithChildren } from 'react';
 
-// Initialize AppKit outside component
-
-  createAppKit({
-  adapters: [ethersAdapter],
-  projectId: projectId as string,
-  networks: [mainnet],
-  defaultNetwork: mainnet,
-  metadata,
-  features: {
-    analytics: true
-  }
-  });
-
+// Create the client outside of the component to ensure it's only created once
+const client = new Client({
+    connectors: [
+        new InjectedConnector()
+    ]
+});
 
 export function Providers({ children }: PropsWithChildren) {
-  return (
-      <EthersQueryProvider config={{
-        alchemyApiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY
-      }}>
-        {children}
-      </EthersQueryProvider>
-  );
+    return (
+        <EthersQueryProvider client={client}>
+            {children}
+        </EthersQueryProvider>
+    );
 } 

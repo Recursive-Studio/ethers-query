@@ -6,4 +6,7 @@ export default defineConfig({
     dts: true,
     clean: true,
     external: ['react', '@tanstack/react-query', 'ethers'],
+    esbuildOptions(options) {
+        options.resolveExtensions = ['.ts', '.tsx']
+    }
 });

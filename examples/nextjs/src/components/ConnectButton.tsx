@@ -1,12 +1,16 @@
 'use client'
 
 import { useAppKit } from '@reown/appkit/react'
-import { useEthersQuery } from 'ethers-query'
+import { useProvider, useSigner } from 'ethers-query'
 import { AppKit } from '../context/appkit'
 
 export default function ConnectButton() {
   const appKit = useAppKit()
-  const client = useEthersQuery()
+  const provider = useProvider()
+  const signer = useSigner()
+
+  console.log('[ConnectButton] provider', provider)
+  console.log('[ConnectButton] signer', signer)
 
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault()

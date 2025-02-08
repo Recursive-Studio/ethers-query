@@ -47,11 +47,19 @@ export class Client {
         
         // Check if already connected (e.g. through AppKit)
         const isConnected = await connector.isConnected()
+        console.log('[Client] isConnected:', isConnected)
+        
         if (isConnected) {
             try {
                 const account = await connector.getAccount()
                 const chainId = await connector.getChainId()
                 const provider = await connector.getProvider()
+                
+                console.log('[Client] Initial connection state:', {
+                    account,
+                    chainId,
+                    provider
+                })
                 
                 if (account && chainId && provider) {
                     this.setState({
@@ -77,6 +85,7 @@ export class Client {
                 this.disconnect()
             } else {
                 const provider = await connector.getProvider()
+                console.log('[Client] Provider after accounts changed:', provider)
                 const chainId = await connector.getChainId()
                 
                 this.setState({
@@ -98,6 +107,7 @@ export class Client {
                 : chainId
             
             const provider = await connector.getProvider()
+            console.log('[Client] Provider after chain changed:', provider)
             const account = await connector.getAccount()
                 
             this.setState({
@@ -106,13 +116,13 @@ export class Client {
                     account,
                     chainId: numericChainId,
                     provider
-                }
+                },
+                status: 'connected'
             })
         }
         
         connector.onDisconnect = () => {
             console.log('[Client] Disconnect event received from connector')
-            console.log('[Client] Current connector state:', this.state.connector)
             this.disconnect()
         }
     }
@@ -133,7 +143,9 @@ export class Client {
     }
     
     getState(): ClientState {
-        return this.state
+        const state = this.state
+        console.log('[Client] Getting state:', state)
+        return state
     }
     
     async connect(connectorId?: string): Promise<void> {
@@ -150,6 +162,7 @@ export class Client {
             this.setupEventHandlers(connector)
             
             const data = await connector.connect()
+            console.log('[Client] Connected with data:', data)
             
             this.setState({
                 connector,
@@ -196,6 +209,8 @@ export class Client {
     async getProvider(): Promise<Provider | null> {
         const { connector } = this.state
         if (!connector) return null
-        return connector.getProvider()
+        const provider = await connector.getProvider()
+        console.log('[Client] getProvider returning:', provider)
+        return provider
     }
 } 

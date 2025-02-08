@@ -19,10 +19,16 @@ export class InjectedConnector implements Connector {
         this.initializing = true
         
         try {
-            if (typeof window === 'undefined') return
+            if (typeof window === 'undefined') {
+                console.log('[InjectedConnector] Window is undefined')
+                return
+            }
             
             const ethereum = window.ethereum
-            if (!ethereum?.request) return
+            if (!ethereum?.request) {
+                console.log('[InjectedConnector] No ethereum provider found')
+                return
+            }
             
             console.log('[InjectedConnector] Initializing with ethereum:', {
                 isMetaMask: ethereum.isMetaMask,
@@ -31,6 +37,7 @@ export class InjectedConnector implements Connector {
             })
             
             this.provider = new BrowserProvider(ethereum)
+            console.log('[InjectedConnector] Provider initialized:', this.provider)
             
             // Set up event listeners
             ethereum.on('accountsChanged', (accounts: string[]) => {
@@ -60,6 +67,7 @@ export class InjectedConnector implements Connector {
         const account = accounts[0] ?? null
         const chainId = await this.getChainId()
         
+        console.log('[InjectedConnector] Returning provider in connect:', this.provider)
         return {
             account,
             chainId,
@@ -68,12 +76,13 @@ export class InjectedConnector implements Connector {
     }
     
     async disconnect(): Promise<void> {
-        console.log('[InjectedConnector] Disconnecting')
+        console.log('[InjectedConnector] Disconnecting, current provider:', this.provider)
         this.provider = null
     }
     
     async getProvider(): Promise<Provider | null> {
         await this.initialize()
+        console.log('[InjectedConnector] getProvider returning:', this.provider)
         return this.provider
     }
     
@@ -123,6 +132,7 @@ export class InjectedConnector implements Connector {
     
     onDisconnect(): void {
         // This will be implemented by the client
+        console.log('[InjectedConnector] onDisconnect called, setting provider to null')
         this.provider = null
     }
 }

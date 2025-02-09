@@ -13,9 +13,9 @@
     ],
     "exports": {
         ".": {
+            "types": "./dist/index.d.ts",
             "import": "./dist/index.js",
-            "require": "./dist/index.cjs",
-            "types": "./dist/index.d.ts"
+            "require": "./dist/index.cjs"
         }
     },
     "scripts": {
@@ -32,17 +32,17 @@
     "author": "Lucemans",
     "license": "GPL-3.0-only",
     "devDependencies": {
-        "@types/react": "^18.2.0",
-        "@types/react-dom": "^18.2.0",
+        "@types/react": "18.2.61",
+        "@types/react-dom": "18.2.19",
         "@types/use-sync-external-store": "^0.0.6",
         "tsup": "*",
         "typescript": "^5.7.3"
     },
     "peerDependencies": {
-        "@tanstack/react-query": "*",
+        "@tanstack/react-query": "^5.0.0",
         "ethers": "6.x",
-        "react": "*",
-        "react-dom": "*"
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0"
     },
     "dependencies": {
         "use-sync-external-store": "^1.4.0"

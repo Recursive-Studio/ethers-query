@@ -2,7 +2,6 @@
 
 import { useAppKit } from '@reown/appkit/react'
 import { useProvider, useSigner } from 'ethers-query'
-import { AppKit } from '../context/appkit'
 
 export default function ConnectButton() {
   const appKit = useAppKit()
@@ -24,10 +23,8 @@ export default function ConnectButton() {
   }
 
   return (
-    <AppKit>
-      <button onClick={handleClick}>
-        Connect Wallet
-      </button>
-    </AppKit>
+    <button onClick={handleClick}>
+      Connect Wallet
+    </button>
   )
 }

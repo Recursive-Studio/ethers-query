@@ -2,6 +2,7 @@
 
 import { AccountStatus } from '@/components/AccountStatus';
 import ConnectButton from '../components/ConnectButton';
+import { SmartContractFunctions } from '../components/SmartContractFunctions';
 
 export default function Home() {
   return (
@@ -11,6 +12,7 @@ export default function Home() {
         <h1 className="mb-8 text-4xl font-bold">Welcome to Your Web3 App</h1>
         <div className="flex justify-center">
           <ConnectButton />
+          <SmartContractFunctions />
         </div>
       </div>
     </main>

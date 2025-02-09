@@ -1,10 +1,11 @@
-import { type FC, type PropsWithChildren, createContext, useContext } from 'react'
+import { type FC, type ReactNode, createContext, useContext } from 'react'
 import type { Client } from './client.js'
 
 const EthersQueryContext = createContext<Client | undefined>(undefined)
 
-export interface EthersQueryProviderProps extends PropsWithChildren {
+export interface EthersQueryProviderProps {
     client: Client
+    children: ReactNode
 }
 
 export const EthersQueryProvider: FC<EthersQueryProviderProps> = ({ 

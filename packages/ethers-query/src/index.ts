@@ -5,4 +5,5 @@ export { EthersQueryProvider, useEthersQuery, type EthersQueryProviderProps } fr
 export { useAccount, type AccountData } from './hooks/useAccount.js'
 export { useProvider } from './hooks/useProvider.js'
 export { useSigner } from './hooks/useSigner.js'
+export { useSmartContract } from './hooks/useSmartContract.js'
 

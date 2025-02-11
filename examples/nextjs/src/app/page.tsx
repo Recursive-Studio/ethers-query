@@ -25,8 +25,11 @@ export default function Home() {
             <div>
               <h2 className="text-2xl font-semibold mb-2">Wallet Connection</h2>
               <p className="text-gray-400">
-                Uses <code className="text-blue-400">useAccount</code> and <code className="text-blue-400">useSigner</code> hooks 
+                Use <code className="text-blue-400">useAccount</code> and <code className="text-blue-400">useSigner</code> hooks 
                 to manage wallet connections and account state.
+              </p>
+              <p className="text-gray-400">
+                Use <code className="text-blue-400">useBalance</code> hook to get the balance of the connected account.
               </p>
             </div>
             <ConnectButton />
@@ -40,7 +43,7 @@ export default function Home() {
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold mb-2">Smart Contract Interaction</h2>
               <p className="text-gray-400 mb-4">
-                Demonstrates <code className="text-blue-400">useSmartContract</code> hook for reading from and writing to smart contracts. 
+                Use <code className="text-blue-400">useSmartContract</code> hook for reading from and writing to smart contracts. 
                 Includes real-time data updates and transaction handling.
               </p>
               <SmartContractFunctions />
@@ -50,7 +53,7 @@ export default function Home() {
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold mb-2">Message Signing</h2>
               <p className="text-gray-400 mb-4">
-                Showcases <code className="text-blue-400">useSignMessage</code> hook for signing and verifying messages. 
+                Use <code className="text-blue-400">useSignMessage</code> hook for signing and verifying messages. 
                 Useful for authentication and proving wallet ownership.
               </p>
               <SignMessage />

@@ -49,33 +49,37 @@ export const SmartContractFunctions = () => {
     const error = nameError || approveError;
 
     return (
-        <div className="flex flex-col gap-4 p-4">
-            <div className="flex gap-4">
-                <button 
-                    onClick={handleRead}
-                    disabled={isLoading}
-                    className="px-4 py-2 bg-blue-500 text-white rounded disabled:bg-gray-400"
-                >
-                    {nameLoading ? 'Loading...' : 'Read Name'}
-                </button>
-                <button 
-                    onClick={handleWrite}
-                    disabled={isLoading}
-                    className="px-4 py-2 bg-green-500 text-white rounded disabled:bg-gray-400"
-                >
-                    {approveLoading ? 'Approving...' : 'Approve Tokens'}
-                </button>
+        <div className="flex flex-col gap-6 p-4">
+            <div className="p-6 rounded-lg border border-gray-200 shadow-sm space-y-4">
+                <h2 className="text-xl font-semibold text-white-800">Contract Functions</h2>
+                <div className="flex gap-4">
+                    <button 
+                        onClick={handleRead}
+                        disabled={isLoading}
+                        className="px-4 py-2 bg-blue-500 text-white rounded disabled:bg-gray-400 hover:bg-blue-600 transition-colors"
+                    >
+                        {nameLoading ? 'Loading...' : 'Read Name'}
+                    </button>
+                    <button 
+                        onClick={handleWrite}
+                        disabled={isLoading}
+                        className="px-4 py-2 bg-green-500 text-white rounded disabled:bg-gray-400 hover:bg-green-600 transition-colors"
+                    >
+                        {approveLoading ? 'Approving...' : 'Approve Tokens'}
+                    </button>
+                </div>
+                {error && (
+                    <div className="text-red-500">
+                        {error.message}
+                    </div>
+                )}
+                {name && (
+                    <div className="text-green-500">
+                        Token Name: {name}
+                    </div>
+                )}
             </div>
-            {error && (
-                <div className="text-red-500">
-                    {error.message}
-                </div>
-            )}
-            {name && (
-                <div className="text-green-500">
-                    Token Name: {name}
-                </div>
-            )}
+
         </div>
     );
 };

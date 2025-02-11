@@ -1,0 +1,15 @@
+{
+  "name": "ethers-query-monorepo",
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm --parallel -r run dev",
+    "docs:dev": "cd docs && pnpm start",
+    "docs:build": "cd docs && pnpm build",
+    "docs:serve": "cd docs && pnpm serve",
+    "docs:deploy": "cd docs && pnpm deploy"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+} 

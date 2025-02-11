@@ -21,9 +21,7 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "build": "tsup",
-        "typedoc:clean": "rm -rf docs && echo '✨ Cleaned docs directory'",
-        "typedoc:generate": "echo '📚 Generating documentation...' && pnpm exec typedoc --options ./typedoc.json && echo '✅ Documentation generated in ./docs'",
-        "typedoc": "echo '🚀 Starting documentation generation...' && pnpm run typedoc:clean && pnpm run typedoc:generate && echo '🎉 Documentation ready! Open ./docs/modules.html in your browser'"
+        "watch": "tsup --watch"
     },
     "keywords": [
         "ethers",
@@ -39,7 +37,6 @@
         "@types/react-dom": "18.2.19",
         "@types/use-sync-external-store": "^0.0.6",
         "tsup": "*",
-        "typedoc": "^0.27.7",
         "typescript": "^5.7.3"
     },
     "peerDependencies": {

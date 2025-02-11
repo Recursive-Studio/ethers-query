@@ -2,6 +2,34 @@ import { useMemo } from "react";
 import { useSyncExternalStore } from "use-sync-external-store/shim";
 import { useEthersQuery } from "../context.js";
 
+/**
+ * Hook for accessing the current ethers Provider instance
+ * @category Hooks
+ * @beta
+ * 
+ * @returns The current ethers Provider instance or null if not connected
+ * 
+ * @example
+ * ```tsx
+ * import { useProvider } from 'ethers-query'
+ * 
+ * function Component() {
+ *   const provider = useProvider()
+ * 
+ *   const getBlockNumber = async () => {
+ *     if (!provider) return
+ *     const blockNumber = await provider.getBlockNumber()
+ *     console.log('Current block:', blockNumber)
+ *   }
+ * 
+ *   return (
+ *     <button onClick={getBlockNumber}>
+ *       Get Block Number
+ *     </button>
+ *   )
+ * }
+ * ```
+ */
 export const useProvider = () => {
   const client = useEthersQuery();
 

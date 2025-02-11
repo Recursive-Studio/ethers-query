@@ -1,6 +1,0 @@
-[book]
-authors = ["Luc"]
-language = "en"
-multilingual = false
-src = "src"
-title = "Ethers Query"

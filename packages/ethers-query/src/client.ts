@@ -1,24 +1,79 @@
 import type { Provider } from 'ethers'
 import type { Connector, ConnectorData } from './connectors/base.js'
 
+/**
+ * Configuration options for initializing the ethers-query Client
+ * @category Core
+ * @group Types
+ * @beta
+ */
 export type ClientConfig = {
+    /** Array of wallet connectors to use (e.g., InjectedConnector) */
     connectors: Connector[]
 }
 
+/**
+ * Internal state of the Client
+ * @category Core
+ * @group Types
+ * @beta
+ */
 type ClientState = {
+    /** The currently active connector or null if not connected */
     connector: Connector | null
+    /** Connection data from the active connector or null if not connected */
     data: ConnectorData | null
+    /** Current connection status */
     status: 'connected' | 'connecting' | 'disconnected' | 'reconnecting'
+    /** Whether the client has completed initialization */
     isInitialized: boolean
 }
 
+/**
+ * Callback function type for state change subscriptions
+ * @category Core
+ * @group Types
+ * @beta
+ */
 type StateListener = (state: ClientState) => void
 
+/**
+ * The core client for managing wallet connections and state
+ * @category Core
+ * @group Classes
+ * @beta
+ * 
+ * @example
+ * ```typescript
+ * import { Client, InjectedConnector } from 'ethers-query'
+ * 
+ * const client = new Client({
+ *   connectors: [new InjectedConnector()]
+ * })
+ * 
+ * // Connect to the first available connector
+ * await client.connect()
+ * 
+ * // Get the current state
+ * const state = client.getState()
+ * 
+ * // Subscribe to state changes
+ * const unsubscribe = client.subscribe((state) => {
+ *   console.log('New state:', state)
+ * })
+ * 
+ * // Disconnect
+ * await client.disconnect()
+ * ```
+ */
 export class Client {
     private connectors: Connector[]
     private state: ClientState
     private listeners: Set<StateListener> = new Set()
     
+    /**
+     * Creates a new Client instance
+     */
     constructor(config: ClientConfig) {
         this.connectors = config.connectors
         this.state = {
@@ -137,17 +192,49 @@ export class Client {
         this.listeners.forEach(listener => listener(this.state))
     }
     
+    /**
+     * Subscribe to state changes
+     * @returns A function to unsubscribe
+     * 
+     * @example
+     * ```typescript
+     * const unsubscribe = client.subscribe((state) => {
+     *   console.log('State changed:', state)
+     * })
+     * 
+     * // Later, to unsubscribe
+     * unsubscribe()
+     * ```
+     */
     subscribe(listener: StateListener): () => void {
         this.listeners.add(listener)
         return () => this.listeners.delete(listener)
     }
     
+    /**
+     * Get the current client state
+     * @returns The current state including connection status and wallet data
+     */
     getState(): ClientState {
         const state = this.state
         console.log('[Client] Getting state:', state)
         return state
     }
     
+    /**
+     * Connect to a wallet
+     * @param connectorId - Optional ID of the specific connector to use
+     * @throws Error if connector is not found or connection fails
+     * 
+     * @example
+     * ```typescript
+     * // Connect using the first available connector
+     * await client.connect()
+     * 
+     * // Connect using a specific connector
+     * await client.connect('injected')
+     * ```
+     */
     async connect(connectorId?: string): Promise<void> {
         const connector = connectorId 
             ? this.connectors.find(c => c.id === connectorId)
@@ -180,6 +267,14 @@ export class Client {
         }
     }
     
+    /**
+     * Disconnect the current wallet connection
+     * 
+     * @example
+     * ```typescript
+     * await client.disconnect()
+     * ```
+     */
     async disconnect(): Promise<void> {
         console.log('[Client] Disconnect called with state:', {
             connector: this.state.connector,
@@ -206,6 +301,18 @@ export class Client {
         })
     }
     
+    /**
+     * Get the current provider instance
+     * @returns The current ethers Provider or null if not connected
+     * 
+     * @example
+     * ```typescript
+     * const provider = await client.getProvider()
+     * if (provider) {
+     *   const blockNumber = await provider.getBlockNumber()
+     * }
+     * ```
+     */
     async getProvider(): Promise<Provider | null> {
         const { connector } = this.state
         if (!connector) return null

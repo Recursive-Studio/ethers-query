@@ -1,5 +1,5 @@
-import { BrowserProvider, type Provider } from 'ethers'
-import type { Connector, ConnectorData } from './base.js'
+import { BrowserProvider, type Provider } from 'ethers';
+import type { Connector, ConnectorData } from './base.js';
 
 declare global {
     interface Window {
@@ -7,13 +7,40 @@ declare global {
     }
 }
 
+/**
+ * Connector for injected Web3 providers (e.g., MetaMask)
+ * @module Connectors
+ * @beta
+ * 
+ * This connector supports any EIP-1193 compliant injected provider,
+ * but is primarily tested with MetaMask.
+ * 
+ * @example
+ * ```typescript
+ * import { Client, InjectedConnector } from 'ethers-query'
+ * 
+ * const client = new Client({
+ *   connectors: [new InjectedConnector()]
+ * })
+ * 
+ * // Connect using injected provider (e.g., MetaMask)
+ * await client.connect()
+ * ```
+ */
 export class InjectedConnector implements Connector {
+    /** Unique identifier for the injected connector */
     readonly id = 'injected'
+
+    /** Human-readable name for the injected connector */
     readonly name = 'Browser Wallet'
     
     private provider: BrowserProvider | null = null
     private initializing: boolean = false
     
+    /**
+     * Initialize the connector by setting up the provider and event listeners
+     * @internal
+     */
     private async initialize(): Promise<void> {
         if (this.initializing) return
         this.initializing = true
@@ -57,6 +84,11 @@ export class InjectedConnector implements Connector {
         }
     }
     
+    /**
+     * Connect to the injected provider
+     * @returns Connection data including account, chain ID, and provider
+     * @throws If no provider is available or connection fails
+     */
     async connect(): Promise<ConnectorData> {
         console.log('[InjectedConnector] Connecting...')
         await this.initialize()
@@ -75,17 +107,29 @@ export class InjectedConnector implements Connector {
         }
     }
     
+    /**
+     * Disconnect from the injected provider
+     * Cleans up the provider instance and removes event listeners
+     */
     async disconnect(): Promise<void> {
         console.log('[InjectedConnector] Disconnecting, current provider:', this.provider)
         this.provider = null
     }
     
+    /**
+     * Get the current provider instance
+     * @returns The ethers Provider instance or null if not connected
+     */
     async getProvider(): Promise<Provider | null> {
         await this.initialize()
         console.log('[InjectedConnector] getProvider returning:', this.provider)
         return this.provider
     }
     
+    /**
+     * Check if wallet is currently connected
+     * @returns True if connected, false otherwise
+     */
     async isConnected(): Promise<boolean> {
         await this.initialize()
         if (!this.provider) return false
@@ -98,6 +142,10 @@ export class InjectedConnector implements Connector {
         }
     }
     
+    /**
+     * Get the current account address
+     * @returns The connected account address or null if not connected
+     */
     async getAccount(): Promise<string | null> {
         await this.initialize()
         if (!this.provider) return null
@@ -110,6 +158,10 @@ export class InjectedConnector implements Connector {
         }
     }
     
+    /**
+     * Get the current chain ID
+     * @returns The current chain ID or null if not connected
+     */
     async getChainId(): Promise<number | null> {
         await this.initialize()
         if (!this.provider) return null
@@ -122,14 +174,26 @@ export class InjectedConnector implements Connector {
         }
     }
     
+    /**
+     * Handler for account changes from the provider
+     * @param accounts Array of new account addresses
+     */
     onAccountsChanged(accounts: string[]): void {
         // This will be implemented by the client
     }
     
+    /**
+     * Handler for chain changes from the provider
+     * @param chainId New chain ID (hex string)
+     */
     onChainChanged(chainId: string): void {
         // This will be implemented by the client
     }
     
+    /**
+     * Handler for disconnect events from the provider
+     * Cleans up the provider instance
+     */
     onDisconnect(): void {
         // This will be implemented by the client
         console.log('[InjectedConnector] onDisconnect called, setting provider to null')

@@ -240,3 +240,16 @@ export { useSignMessage } from './hooks/useSignMessage.js'
  */
 export { useSmartContract } from './hooks/useSmartContract.js'
 
+/**
+ * @module Hooks
+ * @beta
+ * 
+ * @example
+ * ```tsx
+ * import { useBalance } from 'ethers-query'
+ * 
+ * function Component() {
+ *   const balance = useBalance()
+ * }
+ */
+export { useBalance } from './hooks/useBalance.js'

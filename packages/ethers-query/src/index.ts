@@ -254,5 +254,16 @@ export { useSmartContract } from './hooks/useSmartContract.js'
  */
 export { useBalance } from './hooks/useBalance.js'
 
-
+/**
+ * @module Hooks
+ * @beta
+ * 
+ * @example
+ * ```tsx
+ * import { useWallet } from 'ethers-query'
+ * 
+ * function Component() {
+ *   const { connect, disconnect, isConnected } = useWallet()
+ * }
+ */
 export { useWallet } from './hooks/useWallet.js'

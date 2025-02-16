@@ -22,6 +22,20 @@ const {
 
 Manages wallet connection and account state.
 
+### useWallet
+
+```tsx
+const {
+  connect,
+  disconnect,
+  isConnecting,
+  isDisconnecting,
+  error
+} = useWallet()
+```
+
+Provides wallet connection management functions and connection states.
+
 ### useBalance
 
 ```tsx

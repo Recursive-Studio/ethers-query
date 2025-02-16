@@ -61,6 +61,32 @@ interface SmartContractConfig {
 
 ## Hook Return Types
 
+### UseWalletResult
+
+```tsx
+interface UseWalletResult {
+  /** Function to connect a wallet */
+  connect: (args: ConnectArgs) => Promise<void>;
+  /** Function to disconnect the current wallet */
+  disconnect: () => Promise<void>;
+  /** Whether a connection operation is in progress */
+  isConnecting: boolean;
+  /** Whether a disconnection operation is in progress */
+  isDisconnecting: boolean;
+  /** Error that occurred during the last operation */
+  error: Error | null;
+}
+```
+
+### ConnectArgs
+
+```tsx
+type ConnectArgs = {
+  /** The connector ID to use for connecting */
+  connectorId: string;
+}
+```
+
 ### UseAccountResult
 
 ```tsx

@@ -5,6 +5,7 @@ import { useSigner } from 'ethers-query';
 import ConnectButton from '../components/ConnectButton';
 import { SignMessage } from '../components/SignMessage';
 import { SmartContractFunctions } from '../components/SmartContractFunctions';
+import { WalletActions } from '../components/WalletActions';
 
 export default function Home() {
   const signer = useSigner();
@@ -35,6 +36,7 @@ export default function Home() {
             <ConnectButton />
           </div>
           <AccountStatus />
+          <WalletActions />
         </section>
 
         {signer && (

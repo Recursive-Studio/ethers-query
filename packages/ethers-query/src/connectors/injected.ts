@@ -113,7 +113,60 @@ export class InjectedConnector implements Connector {
      */
     async disconnect(): Promise<void> {
         console.log('[InjectedConnector] Disconnecting, current provider:', this.provider)
-        this.provider = null
+        
+        try {
+            // Clear any stored connection state first
+            try {
+                localStorage.removeItem('ethers-query:connected')
+            } catch (error) {
+                console.error('[InjectedConnector] Failed to clear localStorage:', error)
+            }
+
+            // Only attempt cleanup if we have a provider
+            if (this.provider) {
+                const ethereum = window.ethereum
+                
+                // Remove event listeners if ethereum object exists
+                if (ethereum) {
+                    ethereum.removeListener('accountsChanged', this.onAccountsChanged)
+                    ethereum.removeListener('chainChanged', this.onChainChanged)
+                    ethereum.removeListener('disconnect', this.onDisconnect)
+                    
+                    // Try to revoke wallet permissions if supported
+                    try {
+                        console.log('[InjectedConnector] Revoking permissions')
+                        await ethereum.request({
+                            method: 'wallet_revokePermissions',
+                            params: [{ eth_accounts: {} }]
+                        })
+                    } catch (error) {
+                        // Not all wallets support revoking permissions
+                        console.log('[InjectedConnector] Wallet does not support revoking permissions:', error)
+                    }
+                }
+                
+                // Safely destroy provider if it's in a valid state
+                try {
+                    // Check if the provider is in a valid state before destroying
+                    const isValid = await this.provider.getNetwork()
+                        .then(() => true)
+                        .catch(() => false)
+                    
+                    if (isValid) {
+                        await this.provider.destroy()
+                    } else {
+                        console.log('[InjectedConnector] Provider is not in a valid state, skipping destroy')
+                    }
+                } catch (error) {
+                    console.error('[InjectedConnector] Error destroying provider:', error)
+                }
+            }
+        } catch (error) {
+            console.error('[InjectedConnector] Error during disconnect:', error)
+        } finally {
+            // Always ensure provider is nullified at the end
+            this.provider = null
+        }
     }
     
     /**
@@ -192,11 +245,42 @@ export class InjectedConnector implements Connector {
     
     /**
      * Handler for disconnect events from the provider
-     * Cleans up the provider instance
+     * Cleans up the provider instance and connection state
      */
     onDisconnect(): void {
-        // This will be implemented by the client
-        console.log('[InjectedConnector] onDisconnect called, setting provider to null')
-        this.provider = null
+        console.log('[InjectedConnector] onDisconnect called')
+        
+        try {
+            // Clear connection state immediately
+            try {
+                localStorage.removeItem('ethers-query:connected')
+            } catch (error) {
+                console.error('[InjectedConnector] Failed to clear localStorage:', error)
+            }
+            
+            // Schedule provider cleanup to avoid race conditions
+            setTimeout(() => {
+                if (this.provider) {
+                    try {
+                        const ethereum = window.ethereum
+                        if (ethereum) {
+                            ethereum.removeListener('accountsChanged', this.onAccountsChanged)
+                            ethereum.removeListener('chainChanged', this.onChainChanged)
+                            ethereum.removeListener('disconnect', this.onDisconnect)
+                        }
+                        
+                        this.provider.destroy()
+                        this.provider = null
+                        console.log('[InjectedConnector] Provider cleanup completed')
+                    } catch (error) {
+                        console.error('[InjectedConnector] Error during provider cleanup:', error)
+                        this.provider = null
+                    }
+                }
+            }, 0)
+        } catch (error) {
+            console.error('[InjectedConnector] Error in onDisconnect:', error)
+            this.provider = null
+        }
     }
 }

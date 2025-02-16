@@ -253,3 +253,6 @@ export { useSmartContract } from './hooks/useSmartContract.js'
  * }
  */
 export { useBalance } from './hooks/useBalance.js'
+
+
+export { useWallet } from './hooks/useWallet.js'

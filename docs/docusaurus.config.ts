@@ -58,7 +58,7 @@ const config: Config = {
       title: 'ethers-query',
       logo: {
         alt: 'ethers-query Logo',
-        src: 'img/logo.svg',
+        src: 'img/logo.png',
       },
       items: [
         {

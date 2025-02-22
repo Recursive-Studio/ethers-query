@@ -36,7 +36,7 @@ const config: Config = {
       'classic',
       {
         docs: {
-          routeBasePath: '/',
+          routeBasePath: 'docs',
           sidebarPath: './sidebars.js',
           editUrl:
             'https://github.com/Recursive-Studio/ethers-query/tree/main/docs/',
@@ -52,6 +52,14 @@ const config: Config = {
   themes: ['@docusaurus/theme-live-codeblock'],
 
   themeConfig: {
+    // Set intro.md as the default route
+    defaultMode: 'dark',
+    docs: {
+      sidebar: {
+        hideable: true,
+        autoCollapseCategories: true,
+      },
+    },
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
     navbar: {
@@ -82,11 +90,11 @@ const config: Config = {
           items: [
             {
               label: 'Getting Started',
-              to: '/getting-started/installation',
+              to: '/docs/getting-started/installation',
             },
             {
               label: 'API Reference',
-              to: '/api',
+              to: '/docs/api',
             },
           ],
         },

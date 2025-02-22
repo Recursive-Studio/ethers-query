@@ -1,6 +1,11 @@
+/** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
 module.exports = {
   tutorialSidebar: [
-    'intro',
+    {
+      type: 'doc',
+      id: 'intro',
+      label: 'Introduction',
+    },
     {
       type: 'category',
       label: 'Getting Started',

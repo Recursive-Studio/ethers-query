@@ -1,0 +1,4 @@
+{
+  "buildCommand": "cd docs && pnpm install && ./node_modules/.bin/docusaurus build",
+  "outputDirectory": "docs/build"
+} 
